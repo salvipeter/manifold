@@ -13,8 +13,8 @@ struct Traits : public OpenMesh::DefaultTraits {
 };
 using Mesh = OpenMesh::PolyMesh_ArrayKernelT<Traits>;
 
-// using NPatch = Transfinite::SurfaceC0Coons;
-using NPatch = Transfinite::SurfaceGeneralizedBezier;
+using NPatch = Transfinite::SurfaceC0Coons;
+// using NPatch = Transfinite::SurfaceGeneralizedBezier;
 // using NPatch = Transfinite::SurfaceMidpoint;
 
 using namespace Geometry;
@@ -31,7 +31,7 @@ NPatch generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHandle he) {
     Point3D p1(mesh.point(it.to()).data());
     it = it.next().opp().next();
     Point3D p2(mesh.point(it.to()).data());
-    curves.push_back({ p0, p1, p2 });
+    curves.push_back({ p0, p1 * 2 - (p0 + p2) / 2, p2 });
   } while (it != start);
   curves.insert(curves.begin(), curves.back());
   curves.pop_back();
@@ -47,7 +47,7 @@ NPatch generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHandle he) {
   }
 
   NPatch surface;
-#if 0
+#if 1
   std::vector<std::shared_ptr<Transfinite::Curve>> boundaries;
   std::transform(curves.begin(), curves.end(), std::back_inserter(boundaries),
                  [](const PointVector &p) {
@@ -98,7 +98,7 @@ double trapezoid(const std::function<double(double)> &f, double a, double b,
 
 double simpson(const std::function<double(double)> &f, double a, double b,
                       size_t iterations = 100, double epsilon = 1.0e-7) {
-  double s, s_prev = std::numeric_limits<double>::lowest(), st_prev = s_prev;
+  double s = 0.0, s_prev = std::numeric_limits<double>::lowest(), st_prev = s_prev;
   for (size_t i = 1; i <= iterations; ++i) {
     double st = trapezoid(f, a, b, i, st_prev);
     s = (4.0 * st - st_prev) / 3.0;
@@ -124,9 +124,9 @@ double blendFunction(double x) {
   // Linear
   // return 1 - x;
   // G1 Hermite
-  return std::pow(1 - x, 3) + 3 * std::pow(1 - x, 2) * x;
+  // return std::pow(1 - x, 3) + 3 * std::pow(1 - x, 2) * x;
   // G2 Hermite
-  // return std::pow(1 - x, 5) + 5 * std::pow(1 - x, 4) * x + 10 * std::pow(1 - x, 3) * x * x;
+  return std::pow(1 - x, 5) + 5 * std::pow(1 - x, 4) * x + 10 * std::pow(1 - x, 3) * x * x;
   // Bump
   // return std::exp(-1 / (1 - x)) / (std::exp(-1 / x) + std::exp(-1 / (1 - x)));
   // ERBS

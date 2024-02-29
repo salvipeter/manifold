@@ -1,7 +1,7 @@
 all: manifold
 
-FLAGS=-std=c++20 -Wall -pedantic -g -DDEBUG -O0
-#FLAGS=-std=c++20 -Wall -pedantic -DNDEBUG -O3
+#FLAGS=-std=c++20 -Wall -pedantic -g -DDEBUG -O0
+FLAGS=-std=c++20 -Wall -pedantic -DNDEBUG -O3
 
 LIBGEOM=../libgeom
 TRANSFINITE=../transfinite
