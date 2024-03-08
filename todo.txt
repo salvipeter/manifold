@@ -1,4 +1,6 @@
-closed quadmesh of arbitrary topology -> vertex-interpolating surface
+closed quadmesh of arbitrary topology -> G2 or C-infty vertex-interpolating surface
+- vs. Zorin -> no approximation, no subdivision
+- vs. Fang  -> no normals, no Least, no edge-surfaces (ribbons)
 
 - non-closed meshes
 - non-quad meshes
