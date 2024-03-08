@@ -1,0 +1,5 @@
+closed quadmesh of arbitrary topology -> vertex-interpolating surface
+
+- non-closed meshes
+- non-quad meshes
+- other blending functions?
