@@ -1,4 +1,4 @@
-all: manifold manifold-qgb
+all: manifold manifold-normal manifold-qgb
 
 #FLAGS=-std=c++20 -Wall -pedantic -g -DDEBUG -O0
 FLAGS=-std=c++20 -Wall -pedantic -DNDEBUG -O3
@@ -13,6 +13,9 @@ LIBS=-lOpenMeshCore \
 	-L$(LIBGEOM)/release -lgeom
 
 manifold: manifold.cc
+	$(CXX) -o $@ $< $(FLAGS) $(INCLUDES) $(LIBS)
+
+manifold-normal: manifold-normal.cc
 	$(CXX) -o $@ $< $(FLAGS) $(INCLUDES) $(LIBS)
 
 manifold-qgb: manifold-qgb.cc

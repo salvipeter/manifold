@@ -168,11 +168,11 @@ double blendFunction(double x) {
   // G1 Hermite
   // return std::pow(1 - x, 3) + 3 * std::pow(1 - x, 2) * x;
   // G2 Hermite
-  // return std::pow(1 - x, 5) + 5 * std::pow(1 - x, 4) * x + 10 * std::pow(1 - x, 3) * x * x;
+  return std::pow(1 - x, 5) + 5 * std::pow(1 - x, 4) * x + 10 * std::pow(1 - x, 3) * x * x;
   // Bump
   // return std::exp(-1 / (1 - x)) / (std::exp(-1 / x) + std::exp(-1 / (1 - x)));
   // ERBS
-  return 1 - erbsBlend(x);
+  // return 1 - erbsBlend(x);
 }
 
 double blend(const Point2D &uv) {

@@ -1,7 +1,16 @@
+Polyhedral design with blended n-sided interpolants
+
 closed quadmesh of arbitrary topology -> G2 or C-infty vertex-interpolating surface
 - vs. Zorin -> no approximation, no subdivision
 - vs. Fang  -> no normals, no Least, no edge-surfaces (ribbons)
 
-- non-closed meshes
-- non-quad meshes
-- other blending functions?
+- non-closed meshes, boundary / cross-derivative interpolation
+
+1. Alapotlet regularis esetben (quadmesh, ha nem az akkor CC),
+   masodfoku Bezier feluletekkel, blend variansok (G2, C-infty)
+   -> interpolacio nelkul is mukodik, de kevesbe szep
+2. Kiterjesztes QGB-vel, de haromszogre nem jo
+3. Kiterjesztes Midpointtal
+4. Normalvektorokkal jobb hatarok
+
+Problema: ez igy nem G1?!
