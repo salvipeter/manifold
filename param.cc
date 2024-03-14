@@ -77,17 +77,41 @@ double newton(const BSCurve &curve, const Point3D &p) {
 
 // Find the intersection in the [0.5, 1] parametric interval
 Point2D intersect(const BSCurve &a, const BSCurve &b) {
-  size_t res = 10000;
+  size_t iterations = 20;
+  double tolerance = 1e-8;
   Point2D result;
-  auto dmin = std::numeric_limits<double>::max();
-  for (size_t i = res/2; i <= res; ++i) {
-    auto u = i / (double)res;
-    auto p = a.eval(u); p /= p[2];
-    auto d = newton(b, p);
-    if (d < dmin) {
-      dmin = d;
-      result = { p[0], p[1] };
+  double lo = 0.5, hi = 1.0, phi = (std::sqrt(5) + 1) / 2;
+  double d = (phi - 1) * (hi - lo);
+  auto u1 = lo + d, u2 = hi - d;
+  auto p1 = a.eval(u1); p1 /= p1[2];
+  auto d1 = newton(b, p1);
+  auto p2 = a.eval(u2); p2 /= p2[2];
+  auto d2 = newton(b, p2);
+  for (size_t i = 0; i < iterations; ++i) {
+    double u;
+    if (d1 < d2) {
+      u = u1;
+      result = { p1[0], p1[1] };
+      lo = u2;
+      double tmp = u1;
+      u1 = u2 + (phi - 1) * (hi - u2);
+      u2 = tmp;
+      p2 = p1; d2 = d1;
+      p1 = a.eval(u1); p1 /= p1[2];
+      d1 = newton(b, p1);
+    } else {
+      u = u2;
+      result = { p2[0], p2[1] };
+      hi = u1;
+      double tmp = u2;
+      u2 = u1 - (phi - 1) * (u1 - lo);
+      u1 = tmp;
+      p1 = p2; d1 = d2;
+      p2 = a.eval(u2); p2 /= p2[2];
+      d2 = newton(b, p2);
     }
+    if (u != 0 && (2 - phi) * std::abs((hi - lo) / u) < tolerance)
+      break;
   }
   return result;
 }
