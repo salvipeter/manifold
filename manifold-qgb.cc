@@ -33,9 +33,9 @@ private:
   QGB patch;
 };
 
-class QBT : public NPatch {
+class CBT : public NPatch {
 public:
-  QBT(const std::vector<QGB::Boundary> &curves, const Point3D &center) {
+  CBT(const std::vector<QGB::Boundary> &curves, const Point3D &center) {
     const auto &c = curves;
     cpts = PointVector{
       c[0][0], (c[0][0] + c[0][1] * 2) / 3, (c[0][2] + c[0][1] * 2) / 3, c[0][2],
@@ -46,7 +46,7 @@ public:
     cpts[5] = (center * 27 - (cpts[0] + cpts[3] + cpts[9]) -
                (cpts[1] + cpts[2] + cpts[4] + cpts[6] + cpts[7] + cpts[8]) * 3) / 6;
   }
-  ~QBT() {}
+  ~CBT() {}
   Point3D eval(const Point2D &p) const override {
     double l1 = (1 + p[0] * 2) / 3;
     double l2 = (1 - p[0] + p[1] * std::sqrt(3)) / 3;
@@ -85,7 +85,7 @@ std::unique_ptr<NPatch> generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedge
 
   auto n = curves.size();
   if (n == 3)
-    return std::make_unique<QBT>(curves, center);
+    return std::make_unique<CBT>(curves, center);
 
   QGB surface(n);
   for (size_t i = 0; i < n; ++i)
