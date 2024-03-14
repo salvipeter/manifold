@@ -179,6 +179,35 @@ double blend(const Point2D &uv) {
   return blendFunction(uv[0]) * blendFunction(uv[1]);
 }
 
+// Parameterization (cached)
+
+struct Compare {
+  bool operator()(const std::pair<size_t, Point2D> &a,
+                  const std::pair<size_t, Point2D> &b) const {
+    return a.first < b.first ||
+      (a.first == b.first &&
+       (a.second[0] < b.second[0] ||
+        (a.second[0] == b.second[0] && a.second[1] < b.second[1])));
+  }
+};
+
+std::map<std::pair<size_t, Point2D>, Point2D, Compare> param_cache;
+Point2D param(size_t n, const Point2D &uv) {
+  if (param_cache.contains({n, uv}))
+    return param_cache[{n, uv}];
+  auto c = std::cos(2 * M_PI / n), s = std::sin(2 * M_PI / n);
+  Point2DVector corners = {
+    { 0, 0 }, { 0.5 + c / 2, -s / 2 }, { 1, 0 }, { 0.5 + c / 2, s / 2 }
+  };
+  auto p1 = corners[0] + (corners[1] - corners[0]) * uv[0];
+  auto p2 = corners[3] + (corners[2] - corners[3]) * uv[0];
+  auto result = p1 + (p2 - p1) * uv[1];
+  param_cache[{n, uv}] = result;
+  return result;
+}
+
+// Main program
+
 int main(int argc, char **argv) {
   if (argc != 2 && argc != 3) {
     std::cerr << "Usage: " << argv[0] << " <input-mesh> [resolution]" << std::endl;
@@ -189,7 +218,7 @@ int main(int argc, char **argv) {
   if (!OpenMesh::IO::read_mesh(cage, argv[1]))
     return 2;
 
-  size_t resolution = 50;
+  size_t resolution = 51;
   if (argc == 3)
     resolution = std::atoi(argv[2]);
 
@@ -217,15 +246,8 @@ int main(int argc, char **argv) {
           }
           auto b = blend(uv);
           auto n = surface->size();
-          if (n != 4) {
-            auto c = std::cos(2 * M_PI / n), s = std::sin(2 * M_PI / n);
-            Point2DVector corners = {
-              { 0, 0 }, { 0.5 + c / 2, -s / 2 }, { 1, 0 }, { 0.5 + c / 2, s / 2 }
-            };
-            auto p1 = corners[0] + (corners[1] - corners[0]) * uv[0];
-            auto p2 = corners[3] + (corners[2] - corners[3]) * uv[0];
-            uv = p1 + (p2 - p1) * uv[1];
-          }
+          if (n != 4)
+            uv = param(n, uv);
           p += surface->eval(uv) * b;
         }
         points.push_back(p);

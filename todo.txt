@@ -13,4 +13,5 @@ closed quadmesh of arbitrary topology -> G2 or C-infty vertex-interpolating surf
 3. Kiterjesztes Midpointtal
 4. Normalvektorokkal jobb hatarok
 
-Problema: ez igy nem G1?!
+Problema: ez igy nem G1, mert az n-oldalu feluleteknel a reszek parameterezese nem folytonos
+

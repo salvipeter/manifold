@@ -1,4 +1,4 @@
-all: manifold manifold-normal manifold-qgb
+all: manifold manifold-normal manifold-qgb paramtest
 
 #FLAGS=-std=c++20 -Wall -pedantic -g -DDEBUG -O0
 FLAGS=-std=c++20 -Wall -pedantic -DNDEBUG -O3
@@ -20,3 +20,6 @@ manifold-normal: manifold-normal.cc
 
 manifold-qgb: manifold-qgb.cc
 	$(CXX) -o $@ $< $(QGB)/qgb.o $(FLAGS) $(INCLUDES) $(LIBS)
+
+paramtest: paramtest.cc
+	$(CXX) -o $@ $< $(FLAGS) $(INCLUDES) $(LIBS)
