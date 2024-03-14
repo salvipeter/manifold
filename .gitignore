@@ -1,4 +1,5 @@
 *~
+*.o
 manifold
 manifold-qgb
 paramtest

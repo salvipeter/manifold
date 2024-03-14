@@ -5,6 +5,9 @@
 
 #include <qgb.hh>
 
+#include "blend.hh"
+#include "param.hh"
+
 using namespace Geometry;
 
 struct Traits : public OpenMesh::DefaultTraits {
@@ -35,57 +38,9 @@ std::unique_ptr<QGB> generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHan
   return surface;
 }
 
-double trapezoid(const std::function<double(double)> &f, double a, double b,
-                        size_t n, double s) {
-  if (n == 1)
-    return (f(a) + f(b)) / 2.0 * (b - a);
-  double k = std::pow(2, n - 2);
-  double h = (b - a) / k;
-  double sum = 0;
-  for (double x = a + h / 2.0; x <= b; x += h)
-    sum += f(x);
-  return (s + h * sum) / 2.0;
-}
-
-double simpson(const std::function<double(double)> &f, double a, double b,
-                      size_t iterations = 100, double epsilon = 1.0e-7) {
-  double s = 0.0, s_prev = std::numeric_limits<double>::lowest(), st_prev = s_prev;
-  for (size_t i = 1; i <= iterations; ++i) {
-    double st = trapezoid(f, a, b, i, st_prev);
-    s = (4.0 * st - st_prev) / 3.0;
-    if (i > 5 && (std::abs(s - s_prev) < epsilon * std::abs(s_prev) || (s == 0 && s_prev == 0)))
-      break;
-    s_prev = s;
-    st_prev = st;
-  }
-  return s;
-}
-
-double erbsBlend(double t) {
-  if (t < 1e-5)
-    return 0;
-  size_t iterations = 20;
-  constexpr double Sd = 1.6571376796460222;
-  auto phi = [](double s) { return std::exp(-std::pow(s - 0.5, 2) / (s * (1 - s))); };
-  return Sd * simpson(phi, 0, t, iterations);
-}
-
-// f(0) = 1, f(1) = 0, and f^k(0) = f^k(1) = 0 for some k > 0
-double blendFunction(double x) {
-  // Linear
-  // return 1 - x;
-  // G1 Hermite
-  // return std::pow(1 - x, 3) + 3 * std::pow(1 - x, 2) * x;
-  // G2 Hermite
-  return std::pow(1 - x, 5) + 5 * std::pow(1 - x, 4) * x + 10 * std::pow(1 - x, 3) * x * x;
-  // Bump
-  // return std::exp(-1 / (1 - x)) / (std::exp(-1 / x) + std::exp(-1 / (1 - x)));
-  // ERBS
-  // return 1 - erbsBlend(x);
-}
-
 double blend(const Point2D &uv) {
-  return blendFunction(uv[0]) * blendFunction(uv[1]);
+  auto type = BlendType::G2;
+  return blendFunction(uv[0], type) * blendFunction(uv[1], type);
 }
 
 int main(int argc, char **argv) {
@@ -101,6 +56,8 @@ int main(int argc, char **argv) {
   size_t resolution = 50;
   if (argc == 3)
     resolution = std::atoi(argv[2]);
+  auto cachefile = std::string("cache") + std::to_string(resolution) + ".dat";
+  loadCache(cachefile);
 
   TriMesh mesh;
 
@@ -126,15 +83,8 @@ int main(int argc, char **argv) {
           }
           auto b = blend(uv);
           auto n = surface->size();
-          if (n != 4) {
-            auto c = std::cos(2 * M_PI / n), s = std::sin(2 * M_PI / n);
-            Point2DVector corners = {
-              { 0, 0 }, { 0.5 + c / 2, -s / 2 }, { 1, 0 }, { 0.5 + c / 2, s / 2 }
-            };
-            auto p1 = corners[0] + (corners[1] - corners[0]) * uv[0];
-            auto p2 = corners[3] + (corners[2] - corners[3]) * uv[0];
-            uv = p1 + (p2 - p1) * uv[1];
-          }
+          if (n != 4)
+            uv = param(n, uv);
           p += surface->eval(uv) * b;
         }
         points.push_back(p);
@@ -152,4 +102,6 @@ int main(int argc, char **argv) {
     mesh.append(localmesh);
   }
   mesh.writeSTL("/tmp/surface.stl");
+
+  saveCache(cachefile);
 }

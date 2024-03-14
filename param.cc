@@ -1,119 +1,57 @@
 #include <cmath>
 #include <fstream>
-#include <limits>
+#include <functional>
 #include <map>
 
 #include "param.hh"
 
 using namespace Geometry;
 
-size_t binomial(size_t n, size_t k) {
-  if (k > n)
-    return 0;
-  size_t result = 1;
-  for (size_t d = 1; d <= k; ++d, --n)
-    result = result * n / d;
-  return result;
-}
-
-Point3D rationalEval(const BSCurve &curve, double u, size_t d, VectorVector &der) {
-  der.clear(); der.reserve(d + 1);
-  VectorVector der3d;
-  curve.eval(u, d, der3d);
-  for (size_t k = 0; k <= d; ++k) {
-    Vector3D v = der3d[k];
-    for (size_t i = 1; i <= k; ++i)
-      v = v - der[k-i] * der3d[i][2] * binomial(k, i);
-    der.push_back(v / der3d[0][2]);
-  }
-  return der[0];
-}
-
-// Newton iteration to find the perpendicular distance from a point
-// to the curve (in parametric interval [0.5, 1])
-double newton(const BSCurve &curve, const Point3D &p) {
-  size_t max_iteration = 10, res = 20;
-  double distance_tol = 1e-8, cosine_tol = 1e-8;
-
-  VectorVector der;
-  auto lo = 0.5;
-  auto hi = 1.0;
-
-  // Find initial value
-  double u = 0, min = std::numeric_limits<double>::max();
-  for (size_t i = res / 2; i <= res; ++i) {
-    auto t = (double)i / res;
-    auto q = curve.eval(t); q /= q[2];
-    auto d = (p - q).norm();
-    if (d < min) {
-      u = t;
-      min = d;
+double golden(const std::function<double(double)> &f, double xl, double xh,
+              size_t iterations = 20, double tolerance = 1e-8) {
+  double x = 0;
+  static constexpr double phi = (1 + std::sqrt(5.0)) / 2;
+  auto d = (phi - 1) * (xh - xl);
+  auto x1 = xl + d, x2 = xh - d;
+  auto f1 = f(x1), f2 = f(x2);
+  for (size_t i = 0; i < iterations; ++i) {
+    if (f1 < f2) {
+      x = x1;
+      xl = x2;
+      auto tmp = x1;
+      x1 = x2 + (phi - 1) * (xh - x2);
+      x2 = tmp;
+      f2 = f1;
+      f1 = f(x1);
+    } else {
+      x = x2;
+      xh = x1;
+      auto tmp = x2;
+      x2 = x1 - (phi - 1) * (x1 - xl);
+      x1 = tmp;
+      f1 = f2;
+      f2 = f(x2);
     }
-  }
-
-  Vector3D deviation;
-  double distance;
-  for (size_t iteration = 0; iteration < max_iteration; ++iteration) {
-    deviation = rationalEval(curve, u, 2, der) - p;
-    distance = deviation.norm();
-    if (distance < distance_tol)
-      break;
-
-    double scaled_error = der[1] * deviation;
-    double cosine_err = std::abs(scaled_error) / (der[1].norm() * distance);
-    if (cosine_err < cosine_tol)
-      break;
-
-    double old = u;
-    u -= scaled_error / (der[2] * deviation + der[1] * der[1]);
-    u = std::min(std::max(u, lo), hi);
-
-    if ((der[1] * (u - old)).norm() < distance_tol)
+    if (x != 0 && (2 - phi) * std::abs((xh - xl) / x) < tolerance)
       break;
   }
-
-  return distance;
+  return x;
 }
 
 // Find the intersection in the [0.5, 1] parametric interval
 Point2D intersect(const BSCurve &a, const BSCurve &b) {
-  size_t iterations = 20;
-  double tolerance = 1e-8;
-  Point2D result;
-  double lo = 0.5, hi = 1.0, phi = (std::sqrt(5) + 1) / 2;
-  double d = (phi - 1) * (hi - lo);
-  auto u1 = lo + d, u2 = hi - d;
-  auto p1 = a.eval(u1); p1 /= p1[2];
-  auto d1 = newton(b, p1);
-  auto p2 = a.eval(u2); p2 /= p2[2];
-  auto d2 = newton(b, p2);
-  for (size_t i = 0; i < iterations; ++i) {
-    double u;
-    if (d1 < d2) {
-      u = u1;
-      result = { p1[0], p1[1] };
-      lo = u2;
-      double tmp = u1;
-      u1 = u2 + (phi - 1) * (hi - u2);
-      u2 = tmp;
-      p2 = p1; d2 = d1;
-      p1 = a.eval(u1); p1 /= p1[2];
-      d1 = newton(b, p1);
-    } else {
-      u = u2;
-      result = { p2[0], p2[1] };
-      hi = u1;
-      double tmp = u2;
-      u2 = u1 - (phi - 1) * (u1 - lo);
-      u1 = tmp;
-      p1 = p2; d1 = d2;
-      p2 = a.eval(u2); p2 /= p2[2];
-      d2 = newton(b, p2);
-    }
-    if (u != 0 && (2 - phi) * std::abs((hi - lo) / u) < tolerance)
-      break;
-  }
-  return result;
+  auto f = [&](double u) {
+    auto p = a.eval(u); p /= p[2];
+    auto g = [&](double v) {
+      auto q = b.eval(v); q /= q[2];
+      return (p - q).norm();
+    };
+    auto v = golden(g, 0.5, 1.0);
+    return g(v);
+  };
+  auto u = golden(f, 0.5, 1.0);
+  auto p = a.eval(u);
+  return { p[0] / p[2], p[1] / p[2] };
 }
 
 struct Compare {
