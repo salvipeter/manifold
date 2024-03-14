@@ -4,12 +4,13 @@ closed quadmesh of arbitrary topology -> G2 or C-infty vertex-interpolating surf
 - vs. Zorin -> no approximation, no subdivision
 - vs. Fang  -> no normals, no Least, no edge-surfaces (ribbons)
 
+Future work:
 - non-closed meshes, boundary / cross-derivative interpolation
+- better quality by normal interpolation?
 
 1. Alapotlet regularis esetben (quadmesh, ha nem az akkor CC),
    masodfoku Bezier feluletekkel, blend variansok (G2, C-infty)
    -> interpolacio nelkul is mukodik, de kevesbe szep
-2. Kiterjesztes QGB-vel (parameterezes!), de haromszogre nem jo
-3. Kiterjesztes Midpointtal
-
+2. Kiterjesztes QGB-vel (parameterezes!), de haromszogre nem jo -> cubic
+3. Alternativ kiterjesztes Midpointtal
 

@@ -2,6 +2,7 @@
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
+#include <OpenMesh/Tools/Subdivider/Uniform/CatmullClarkT.hh>
 
 #include <transfinite/domain.hh>
 #include <transfinite/surface-midpoint.hh>
@@ -108,6 +109,24 @@ int main(int argc, char **argv) {
   Mesh cage;
   if (!OpenMesh::IO::read_mesh(cage, argv[1]))
     return 2;
+
+  // Check if it is a quad mesh - if not, perform 1 Catmull-Clark subdivision step
+  bool only_quads = true;
+  for (auto face : cage.faces()) {
+    size_t nf = 0;
+    for (auto it = cage.cfv_iter(face); it.is_valid(); ++it)
+      nf++;
+    if (nf != 4) {
+      only_quads = false;
+      break;
+    }
+  }
+  if (!only_quads) {
+    OpenMesh::Subdivider::Uniform::CatmullClarkT<Mesh> cc;
+    cc.attach(cage);
+    cc(1);
+    cc.detach();
+  }
 
   size_t resolution = 51;
   if (argc == 3)

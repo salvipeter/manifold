@@ -2,6 +2,7 @@
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
+#include <OpenMesh/Tools/Subdivider/Uniform/CatmullClarkT.hh>
 
 #include <qgb.hh>
 
@@ -15,9 +16,61 @@ struct Traits : public OpenMesh::DefaultTraits {
 };
 using Mesh = OpenMesh::PolyMesh_ArrayKernelT<Traits>;
 
+class NPatch {
+public:
+  virtual ~NPatch() {}
+  virtual Point3D eval(const Point2D &) const = 0;
+  virtual size_t size() const = 0;
+};
+
+class QGBWrap : public NPatch {
+public:
+  QGBWrap(const QGB &qgb) : patch(qgb) {}
+  ~QGBWrap() {}
+  Point3D eval(const Point2D &p) const override { return patch.eval(p); }
+  size_t size() const override { return patch.size(); }
+private:
+  QGB patch;
+};
+
+class QBT : public NPatch {
+public:
+  QBT(const std::vector<QGB::Boundary> &curves, const Point3D &center) {
+    const auto &c = curves;
+    cpts = PointVector{
+      c[0][0], (c[0][0] + c[0][1] * 2) / 3, (c[0][2] + c[0][1] * 2) / 3, c[0][2],
+      (c[0][0] + c[2][1] * 2) / 3, { 0, 0, 0 }, (c[0][2] + c[1][1] * 2) / 3,
+      (c[2][0] + c[2][1] * 2) / 3, (c[1][2] + c[1][1] * 2) / 3,
+      c[1][2]
+    };
+    cpts[5] = (center * 27 - (cpts[0] + cpts[3] + cpts[9]) -
+               (cpts[1] + cpts[2] + cpts[4] + cpts[6] + cpts[7] + cpts[8]) * 3) / 6;
+  }
+  ~QBT() {}
+  Point3D eval(const Point2D &p) const override {
+    double l1 = (1 + p[0] * 2) / 3;
+    double l2 = (1 - p[0] + p[1] * std::sqrt(3)) / 3;
+    double l3 = 1 - l1 - l2;
+    return
+      cpts[0] * l1 * l1 * l1 +
+      cpts[1] * 3 * l1 * l1 * l2 +
+      cpts[2] * 3 * l1 * l2 * l2 +
+      cpts[3] * l2 * l2 * l2 +
+      cpts[4] * 3 * l1 * l1 * l3 +
+      cpts[5] * 6 * l1 * l2 * l3 +
+      cpts[6] * 3 * l2 * l2 * l3 +
+      cpts[7] * 3 * l1 * l3 * l3 +
+      cpts[8] * 3 * l2 * l3 * l3 +
+      cpts[9] * l3 * l3 * l3;
+  }
+  size_t size() const override { return 3; }
+private:
+  PointVector cpts;
+};
+
 // Generates the N-patch based on the quads around
 // the vertex at the origin of the given half-edge.
-std::unique_ptr<QGB> generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHandle he) {
+std::unique_ptr<NPatch> generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHandle he) {
   Point3D center(mesh.point(he.from()).data());
   std::vector<QGB::Boundary> curves;
   auto start = he.next(), it = start;
@@ -31,11 +84,14 @@ std::unique_ptr<QGB> generateNPatch(const Mesh &mesh, OpenMesh::SmartHalfedgeHan
   } while (it != start);
 
   auto n = curves.size();
-  auto surface = std::make_unique<QGB>(n);
+  if (n == 3)
+    return std::make_unique<QBT>(curves, center);
+
+  QGB surface(n);
   for (size_t i = 0; i < n; ++i)
-    surface->setBoundary(i, curves[(i+n-1)%n]);
-  surface->setMidpoint(center);
-  return surface;
+    surface.setBoundary(i, curves[(i+n-1)%n]);
+  surface.setMidpoint(center);
+  return std::make_unique<QGBWrap>(surface);
 }
 
 double blend(const Point2D &uv) {
@@ -53,6 +109,24 @@ int main(int argc, char **argv) {
   if (!OpenMesh::IO::read_mesh(cage, argv[1]))
     return 2;
 
+  // Check if it is a quad mesh - if not, perform 1 Catmull-Clark subdivision step
+  bool only_quads = true;
+  for (auto face : cage.faces()) {
+    size_t nf = 0;
+    for (auto it = cage.cfv_iter(face); it.is_valid(); ++it)
+      nf++;
+    if (nf != 4) {
+      only_quads = false;
+      break;
+    }
+  }
+  if (!only_quads) {
+    OpenMesh::Subdivider::Uniform::CatmullClarkT<Mesh> cc;
+    cc.attach(cage);
+    cc(1);
+    cc.detach();
+  }
+
   size_t resolution = 50;
   if (argc == 3)
     resolution = std::atoi(argv[2]);
@@ -62,7 +136,7 @@ int main(int argc, char **argv) {
   TriMesh mesh;
 
   for (auto face : cage.faces()) {
-    std::vector<std::unique_ptr<QGB>> patches;
+    std::vector<std::unique_ptr<NPatch>> patches;
     for (auto he : face.halfedges())
       patches.push_back(generateNPatch(cage, he));
 
