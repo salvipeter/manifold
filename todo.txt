@@ -9,9 +9,7 @@ closed quadmesh of arbitrary topology -> G2 or C-infty vertex-interpolating surf
 1. Alapotlet regularis esetben (quadmesh, ha nem az akkor CC),
    masodfoku Bezier feluletekkel, blend variansok (G2, C-infty)
    -> interpolacio nelkul is mukodik, de kevesbe szep
-2. Kiterjesztes QGB-vel, de haromszogre nem jo
+2. Kiterjesztes QGB-vel (parameterezes!), de haromszogre nem jo
 3. Kiterjesztes Midpointtal
-4. Normalvektorokkal jobb hatarok
 
-Problema: ez igy nem G1, mert az n-oldalu feluleteknel a reszek parameterezese nem folytonos
 

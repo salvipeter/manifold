@@ -1,4 +1,4 @@
-all: manifold manifold-normal manifold-qgb paramtest
+all: manifold manifold-qgb paramtest
 
 #FLAGS=-std=c++20 -Wall -pedantic -g -DDEBUG -O0
 FLAGS=-std=c++20 -Wall -pedantic -DNDEBUG -O3
@@ -12,11 +12,8 @@ LIBS=-lOpenMeshCore \
 	-L$(TRANSFINITE)/release/transfinite -ltransfinite \
 	-L$(LIBGEOM)/release -lgeom
 
-manifold: manifold.cc
-	$(CXX) -o $@ $< $(FLAGS) $(INCLUDES) $(LIBS)
-
-manifold-normal: manifold-normal.cc
-	$(CXX) -o $@ $< $(FLAGS) $(INCLUDES) $(LIBS)
+manifold: manifold.cc param.cc
+	$(CXX) -o $@ $^ $(FLAGS) $(INCLUDES) $(LIBS)
 
 manifold-qgb: manifold-qgb.cc
 	$(CXX) -o $@ $< $(QGB)/qgb.o $(FLAGS) $(INCLUDES) $(LIBS)
