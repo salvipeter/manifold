@@ -195,7 +195,7 @@ int main(int argc, char **argv) {
   if (argc == 3)
     resolution = std::atoi(argv[2]);
   auto cachefile = std::string("cache") + std::to_string(resolution) + ".dat";
-  bool cached = loadCache(cachefile);
+  loadCache(cachefile);
 
   TriMesh mesh;
 
@@ -223,6 +223,8 @@ int main(int argc, char **argv) {
           auto n = surface->size();
           if (n != 4)
             uv = param(n, uv);
+          if (n == 6)
+            std::cout << "v " << uv << std::endl;
           p += surface->eval(uv) * b;
         }
         points.push_back(p);
@@ -241,6 +243,5 @@ int main(int argc, char **argv) {
   }
   mesh.writeSTL("/tmp/surface.stl");
 
-  if (!cached)
-    saveCache(cachefile);
+  saveCache(cachefile);
 }

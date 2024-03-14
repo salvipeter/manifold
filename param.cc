@@ -1,30 +1,92 @@
 #include <cmath>
 #include <fstream>
+#include <limits>
 #include <map>
 
 #include "param.hh"
 
 using namespace Geometry;
 
+size_t binomial(size_t n, size_t k) {
+  if (k > n)
+    return 0;
+  size_t result = 1;
+  for (size_t d = 1; d <= k; ++d, --n)
+    result = result * n / d;
+  return result;
+}
+
+Point3D rationalEval(const BSCurve &curve, double u, size_t d, VectorVector &der) {
+  der.clear(); der.reserve(d + 1);
+  VectorVector der3d;
+  curve.eval(u, d, der3d);
+  for (size_t k = 0; k <= d; ++k) {
+    Vector3D v = der3d[k];
+    for (size_t i = 1; i <= k; ++i)
+      v = v - der[k-i] * der3d[i][2] * binomial(k, i);
+    der.push_back(v / der3d[0][2]);
+  }
+  return der[0];
+}
+
+// Newton iteration to find the perpendicular distance from a point
+// to the curve (in parametric interval [0.5, 1])
+double newton(const BSCurve &curve, const Point3D &p) {
+  size_t max_iteration = 10, res = 20;
+  double distance_tol = 1e-8, cosine_tol = 1e-8;
+
+  VectorVector der;
+  auto lo = 0.5;
+  auto hi = 1.0;
+
+  // Find initial value
+  double u = 0, min = std::numeric_limits<double>::max();
+  for (size_t i = res / 2; i <= res; ++i) {
+    auto t = (double)i / res;
+    auto q = curve.eval(t); q /= q[2];
+    auto d = (p - q).norm();
+    if (d < min) {
+      u = t;
+      min = d;
+    }
+  }
+
+  Vector3D deviation;
+  double distance;
+  for (size_t iteration = 0; iteration < max_iteration; ++iteration) {
+    deviation = rationalEval(curve, u, 2, der) - p;
+    distance = deviation.norm();
+    if (distance < distance_tol)
+      break;
+
+    double scaled_error = der[1] * deviation;
+    double cosine_err = std::abs(scaled_error) / (der[1].norm() * distance);
+    if (cosine_err < cosine_tol)
+      break;
+
+    double old = u;
+    u -= scaled_error / (der[2] * deviation + der[1] * der[1]);
+    u = std::min(std::max(u, lo), hi);
+
+    if ((der[1] * (u - old)).norm() < distance_tol)
+      break;
+  }
+
+  return distance;
+}
+
 // Find the intersection in the [0.5, 1] parametric interval
 Point2D intersect(const BSCurve &a, const BSCurve &b) {
-  size_t res = 1000;
-  Point2D result(0.5, 0.5);
-  auto pa = a.eval(0.5); pa /= pa[2];
-  auto pb = b.eval(0.5); pb /= pb[2];
-  auto dmin = (pa - pb).norm();
-  for (size_t i = 50; i <= res; ++i) {
+  size_t res = 10000;
+  Point2D result;
+  auto dmin = std::numeric_limits<double>::max();
+  for (size_t i = res/2; i <= res; ++i) {
     auto u = i / (double)res;
-    auto pa = a.eval(u); pa /= pa[2];
-    for (size_t j = 50; j <= res; ++j) {
-      auto v = j / (double)res;
-      auto pb = b.eval(v); pb /= pb[2];
-      auto d = (pa - pb).norm();
-      if (d < dmin) {
-        dmin = d;
-        auto p = (pa + pb) / 2;
-        result = { p[0], p[1] };
-      }
+    auto p = a.eval(u); p /= p[2];
+    auto d = newton(b, p);
+    if (d < dmin) {
+      dmin = d;
+      result = { p[0], p[1] };
     }
   }
   return result;
