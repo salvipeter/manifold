@@ -100,18 +100,6 @@ Point2D param(size_t n, const Point2D &uv) {
   if (param_cache.contains({n, uv}))
     return param_cache[{n, uv}];
 
-  if (false) {
-    auto c = std::cos(2 * M_PI / n), s = std::sin(2 * M_PI / n);
-    Point2DVector corners = {
-      { 0, 0 }, { 0.5 + c / 2, -s / 2 }, { 1, 0 }, { 0.5 + c / 2, s / 2 }
-    };
-    auto p1 = corners[0] + (corners[1] - corners[0]) * uv[0];
-    auto p2 = corners[3] + (corners[2] - corners[3]) * uv[0];
-    auto result = p1 + (p2 - p1) * uv[1];
-    param_cache[{n, uv}] = result;
-    return result;
-  }
-
   auto u = uv[0], v = uv[1];
   if (u == 0.0 && v == 0.0)
     return { 0, 0 };
