@@ -1,0 +1,102 @@
+#% Do not delete the line below; configure depends on this      
+#  \DeclareLaTeXClass[egpubl, gg2024.sty]{Article (GrafGeo 2024)}
+
+# Created by Carmi Grushko, 2012
+
+Input article.layout
+Input theorems-proof.inc
+
+Style Teaser
+	Margin			Dynamic
+	LatexType		Command
+	LatexName		teaser
+	Category		FrontMatter
+	InTitle			1
+	ParSkip			0.4
+	BottomSep		0.5
+	Align			Left
+	LabelSep		xx
+	LabelType		Static
+	LabelString		"Teaser image:"
+	LabelFont
+	  Color			Green
+	  Series		Bold
+	EndFont
+	AlignPossible		block, left, right, center
+End
+
+Style Article_ID
+      CopyStyle Author
+      LatexType			Environment
+      LatexName			"comment"
+      LabelType			Top_Environment
+      LabelString		"(Hidden)"
+      LabelFont
+		Size		Small
+      		Shape           Italic
+      EndFont
+      TextFont
+		Color		Blue
+      EndFont	  
+End
+
+Style Title
+      OptionalArgs		1
+End
+
+Style Author
+      OptionalArgs		1
+End
+
+Style Hidden_when_anonymous
+End
+
+InsetLayout "Flex:Classification Category"
+	LyxType			custom
+	LatexType		command
+	LatexName		CCScat
+	Decoration		classic
+	LabelString		"Classification Category"
+	Font
+	  Color			foreground
+	  Size			Small
+	  Family		Roman
+	  Shape			Up
+	  Series		Medium
+	  Misc			No_Emph
+	  Misc			No_Noun
+	  Misc			No_Bar
+	EndFont
+	LabelFont
+	  Color			green
+	  Size			Small
+	EndFont
+End
+
+Style Classifications
+	CopyStyle		Abstract
+	LatexName		classification
+	LeftMargin		M
+	LabelType		Top_Environment
+	LabelString		"Classifications"
+	LabelFont
+	  Series		Bold
+	  Size			Normal
+	EndFont
+End
+
+
+
+Preamble
+	\usepackage{gg2024}
+
+	\newif\ifanonymous
+
+	\anonymousfalse
+
+	\ConferencePaper
+
+	%\electronicVersion
+	\PrintedOrElectronic
+	\usepackage{t1enc,dfadobe}
+EndPreamble

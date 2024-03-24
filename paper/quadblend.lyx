@@ -1,0 +1,1765 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass gg2024
+\begin_preamble
+\ConferencePaper
+\usepackage{t1enc,dfadobe}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Polyhedral design with blended 
+\begin_inset Formula $n$
+\end_inset
+
+-sided interpolants
+\end_layout
+
+\begin_layout Author
+\begin_inset Argument 1
+status open
+
+\begin_layout Plain Layout
+Péter Salvi
+\end_layout
+
+\end_inset
+
+Péter Salvi
+\begin_inset Newline newline
+\end_inset
+
+Budapest University of Technology and Economics
+\end_layout
+
+\begin_layout Abstract
+A new parametric surface representation is proposed that interpolates the
+ vertices of a given closed mesh of arbitrary topology.
+ Smoothly connecting quadrilateral patches are created by blending local,
+ multi-sided quadratic interpolants.
+ In the non-four-sided case, this requires a special parameterization technique
+ involving rational curves.
+ Appropriate handling of triangular subpatches and alternative subpatch
+ representations are also discussed.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Introduction"
+
+\end_inset
+
+Introduction
+\end_layout
+
+\begin_layout Standard
+Surface representations based on control polyhedra come in various guises,
+ including recursive subdivision,
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Subdivision"
+literal "false"
+
+\end_inset
+
+ generalized splines
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Macropatch"
+literal "false"
+
+\end_inset
+
+ and `manifold' approaches.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Manifold"
+literal "false"
+
+\end_inset
+
+ In this paper we examine a variation of the manifold-based construction
+ exemplified by the works of Zorin,
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Zorin,Zorin2"
+literal "false"
+
+\end_inset
+
+ and recently by Fang.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Fang"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/idea.pdf
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Idea"
+
+\end_inset
+
+Overlapping quadratic nets around a quad.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Idea"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows the basic idea.
+ The input is a closed mesh.
+ We assume that it only contains quads – if not, we can perform a central
+ split on all faces (similarly to a Catmull–Clark subdivision step) to get
+ rid of the multi-sided patches while retaining all original vertices.
+ For each quad, the 1-rings around its corners define (multi-sided) quadratic
+ control nets.
+ We can generate four local patches interpolating these control points,
+ and evaluate them in the parametric region associated with the quad (Fig.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Blending"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+).
+ The resulting surface is created by blending these together.
+\begin_inset Float figure
+wide true
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename images/blend1.pdf
+	width 19text%
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/blend2.pdf
+	width 19text%
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/blend3.pdf
+	width 19text%
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/blend4.pdf
+	width 19text%
+
+\end_inset
+
+
+\begin_inset space \hfill{}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/blend5.pdf
+	width 19text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Blending"
+
+\end_inset
+
+Blending the local interpolants.
+ Dots indicate a point of evaluation in each; the last image shows the resulting
+ patch.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+Note that while most similar methods are approximative, here we focus on
+ patches that interpolate the input points.
+ The interpolation criterion makes the interpolants more similar in the
+ given region, which may enhance the quality of the resulting surface.
+\end_layout
+
+\begin_layout Standard
+The rest of the paper is organized as follows.
+ Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Regular-meshes"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows the construction in the simple case of regular quadmeshes.
+ Handling of irregular vertices is explained in Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Irregular-vertices"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+, with the definition of Quadratic Generalized Bézier (QGB) patches in Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:Quadratic-generalized-Bézier"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ and a parameterization based on rational Bézier curves in Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:Parameterization"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ Some test results are presented in Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Results"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+; notes on future work conclude the paper.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Regular-meshes"
+
+\end_inset
+
+Regular meshes
+\end_layout
+
+\begin_layout Standard
+In a regular (closed) mesh all vertices have a valency of 4, so all control
+ nets around a quad will be quadrilateral.
+ We use quadratic tensor-product Bézier patches for the interpolants.
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $\mathbf{C}_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathbf{E}_{i}$
+\end_inset
+
+ (
+\begin_inset Formula $i=1\dots4$
+\end_inset
+
+) denote the corner and edge control points, with 
+\begin_inset Formula $\mathbf{E}_{i}$
+\end_inset
+
+ being between 
+\begin_inset Formula $\mathbf{C}_{i-1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathbf{C}_{i}$
+\end_inset
+
+ (with cyclical indexing).
+ The middle control point is denoted by 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+.
+ Then the interpolant is defined as
+\begin_inset Formula 
+\begin{equation}
+\mathbf{I}(u,v)=\sum_{i=0}^{2}\sum_{j=0}^{2}\mathbf{P}_{ij}B_{i}^{2}(u)B_{j}^{2}(v),
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $B_{k}^{d}(t)$
+\end_inset
+
+ is the 
+\begin_inset Formula $k$
+\end_inset
+
+-th Bernstein polynomial of degree 
+\begin_inset Formula $d$
+\end_inset
+
+ at parameter 
+\begin_inset Formula $t$
+\end_inset
+
+, and
+\begin_inset Formula 
+\begin{align}
+\mathbf{P}_{00} & =\mathbf{C}_{3}, & \mathbf{P}_{10} & =\hat{\mathbf{E}}_{4}, & \mathbf{P}_{20} & =\mathbf{C}_{4},\nonumber \\
+\mathbf{P}_{01} & =\hat{\mathbf{E}}_{3}, & \mathbf{P}_{11} & =\frac{1}{4}(16\mathbf{M}-\sum_{i=1}^{4}(\mathbf{C}_{i}+2\hat{\mathbf{E}}_{i})), & \mathbf{P}_{21} & =\hat{\mathbf{E}}_{1},\nonumber \\
+\mathbf{P}_{02} & =\mathbf{C}_{2}, & \mathbf{P}_{12} & =\hat{\mathbf{E}}_{2}, & \mathbf{P}_{22} & =\mathbf{C}_{1}.
+\end{align}
+
+\end_inset
+
+Here 
+\begin_inset Formula $\hat{\mathbf{E}}_{i}=2\mathbf{E}_{i}-\frac{1}{2}(\mathbf{C}_{i-1}+\mathbf{C}_{i})$
+\end_inset
+
+ is the control point position s.t.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset Formula $[\mathbf{C}_{i-1},\hat{\mathbf{E}}_{i},\mathbf{C}_{i}]$
+\end_inset
+
+ define a quadratic Bézier curve interpolating 
+\begin_inset Formula $\mathbf{E}_{i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The parameterization of the quad is in 
+\begin_inset Formula $[0,1]^{2}$
+\end_inset
+
+, and is rotated locally with the following interpolation constraints in
+ mind (
+\begin_inset Formula $\mathbf{S}$
+\end_inset
+
+ denotes the patch to be created):
+\begin_inset Formula 
+\begin{align}
+\mathbf{S}(0,0) & =\mathbf{M}, & \mathbf{S}(1,0) & =\mathbf{E}_{1},\nonumber \\
+\mathbf{S}(0,1) & =\mathbf{E}_{2}, & \mathbf{S}(1,1) & =\mathbf{C}_{1}.\label{eq:param-rot}
+\end{align}
+
+\end_inset
+
+The interpolant point corresponding to the 
+\begin_inset Formula $(u,v)$
+\end_inset
+
+ point in the quad's domain is then 
+\begin_inset Formula $\left((u+1)/2,(v+1)/2\right)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Consequently, the quad patch can be defined as the blend of the four interpolant
+s:
+\begin_inset Formula 
+\begin{equation}
+\mathbf{S}(u,v)=\sum_{i=1}^{4}\mathbf{I}_{i}\left(\frac{u_{i}+1}{2},\frac{v_{i}+1}{2}\right)\Phi(u_{i},v_{i}).
+\end{equation}
+
+\end_inset
+
+The local parameterizations are defined as
+\begin_inset Formula 
+\begin{align}
+u_{1} & =u, & v_{1} & =v,\nonumber \\
+u_{2} & =v, & v_{2} & =1-u,\nonumber \\
+u_{3} & =1-u, & v_{3} & =1-v,\nonumber \\
+u_{4} & =1-v, & v_{4} & =u.
+\end{align}
+
+\end_inset
+
+The blending function is the product of two 1-argument blends
+\begin_inset Formula 
+\begin{equation}
+\Phi(u,v)=\Psi(u)\cdot\Psi(v)
+\end{equation}
+
+\end_inset
+
+with the following constraints:
+\begin_inset Formula 
+\begin{align}
+\Psi(0) & =1, & \Psi(1) & =0, & \Psi^{(k)}(0) & =\Psi^{(k)}(1)=0
+\end{align}
+
+\end_inset
+
+for some 
+\begin_inset Formula $k>0$
+\end_inset
+
+.
+ For finite 
+\begin_inset Formula $k$
+\end_inset
+
+, Hermite blends can be applied:
+\begin_inset Formula 
+\begin{equation}
+\Psi(t)=\sum_{i=0}^{k}B_{i}^{2k+1}(t).
+\end{equation}
+
+\end_inset
+
+For 
+\begin_inset Formula $k=\infty$
+\end_inset
+
+ there are several options, including bump functions and expo-rational B-splines.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Blend"
+literal "false"
+
+\end_inset
+
+ We have used the 
+\begin_inset Formula $k=2$
+\end_inset
+
+ Hermite blend for all examples in the paper.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Irregular-vertices"
+
+\end_inset
+
+Irregular vertices
+\end_layout
+
+\begin_layout Standard
+An irregular vertex generates a non-quadrilateral control net.
+ We interpolate these points by quadratic generalized Bézier patches, as
+ defined below.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Quadratic-generalized-Bézier"
+
+\end_inset
+
+Quadratic Generalized Bézier (QGB) interpolants
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide true
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bilinear.pdf
+	height 18theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Bilinear-map"
+
+\end_inset
+
+Bilinear map
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bilinear-multi.pdf
+	height 18theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Discontinuity"
+
+\end_inset
+
+Discontinuity problem
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/rational.pdf
+	height 18theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Rational-map"
+
+\end_inset
+
+Rational curve map
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/rational3.pdf
+	height 18theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Rational-map3"
+
+\end_inset
+
+Curves in a triangle
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Mappings"
+
+\end_inset
+
+Quad 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ interpolant mappings.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Generalized Bézier (GB) patches
+\begin_inset CommandInset citation
+LatexCommand cite
+key "GB"
+literal "false"
+
+\end_inset
+
+ are normally defined only for cubic or higher degrees, but is easy to further
+ generalize the construction to the quadratic case.
+ As this will be a 
+\begin_inset Formula $C^{0}$
+\end_inset
+
+ interpolant, its equation will be even simpler than that of the original.
+\end_layout
+
+\begin_layout Standard
+The surface is defined over the regular 
+\begin_inset Formula $n$
+\end_inset
+
+-sided polygon 
+\begin_inset Formula $\{(\cos\frac{2k\pi}{n},\sin\frac{2k\pi}{n})\}$
+\end_inset
+
+, 
+\begin_inset Formula $k=0\dots n-1$
+\end_inset
+
+, and for each side we create local coordinate mappings
+\begin_inset Formula 
+\begin{align}
+s_{i}(u,v) & =\lambda_{i}/(\lambda_{i-1}+\lambda_{i}), & d_{i}(u,v) & =1-\lambda_{i-1}-\lambda_{i},
+\end{align}
+
+\end_inset
+
+where 
+\begin_inset Formula $\{\lambda_{i}\}$
+\end_inset
+
+ are the Wachspress coordinates
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Wachspress"
+literal "false"
+
+\end_inset
+
+ of 
+\begin_inset Formula $(u,v)$
+\end_inset
+
+ relative to the domain polygon.
+\end_layout
+
+\begin_layout Standard
+Using the notations of the previous section,
+\begin_inset Formula 
+\begin{align}
+\mathbf{I}(u,v) & =\sum_{i=1}^{n}\left(\mathbf{C}_{i-1}\frac{1}{2}B_{0}^{2}(s_{i})+\hat{\mathbf{E}}_{i}B_{1}^{2}(s_{i})+\mathbf{C}_{i}\frac{1}{2}B_{2}^{2}(s_{i})\right)B_{0}^{2}(d_{i})\nonumber \\
+ & \qquad\quad\,+\mathbf{P}_{0}B_{0}(u,v).
+\end{align}
+
+\end_inset
+
+Here 
+\begin_inset Formula $B_{0}$
+\end_inset
+
+ denotes the weight deficiency
+\begin_inset Formula 
+\begin{equation}
+B_{0}(u,v)=1-\sum_{i=1}^{n}\left(\frac{1}{2}B_{0}^{2}(s_{i})+B_{1}^{2}(s_{i})+\frac{1}{2}B_{2}^{2}(s_{i})\right)B_{0}^{2}(d_{i}),
+\end{equation}
+
+\end_inset
+
+and the central control point 
+\begin_inset Formula $\mathbf{P}_{0}$
+\end_inset
+
+ is defined s.t.
+\begin_inset space ~
+\end_inset
+
+the patch interpolates 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+:
+\begin_inset Formula 
+\begin{equation}
+\mathbf{P}_{0}=\frac{n^{2}\mathbf{M}-\sum_{i=1}^{n}\left(\mathbf{C}_{i}+2\hat{\mathbf{E}}_{i}\right)}{n(n-3)}.
+\end{equation}
+
+\end_inset
+
+Note that for 
+\begin_inset Formula $n=4$
+\end_inset
+
+ this is exactly the same as the tensor-product interpolant in Section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Regular-meshes"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ It is also easy to see that for 
+\begin_inset Formula $n=3$
+\end_inset
+
+ this is a quadratic triangular Bézier patch.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Parameterization"
+
+\end_inset
+
+Parameterization
+\end_layout
+
+\begin_layout Standard
+We still need a mapping between the quad domain 
+\begin_inset Formula $[0,1]^{2}$
+\end_inset
+
+ and the interpolant's domain (a regular polygon inscribed in the unit circle).
+ The associated part of the latter is a 
+\emph on
+kite
+\emph default
+ defined by the points 
+\begin_inset Formula $(0,0)$
+\end_inset
+
+, 
+\begin_inset Formula $(c,-s)$
+\end_inset
+
+, 
+\begin_inset Formula $(1,0)$
+\end_inset
+
+ and 
+\begin_inset Formula $(c,s)$
+\end_inset
+
+, where 
+\begin_inset Formula $c=\frac{1}{2}(\cos(2\pi/n)+1)$
+\end_inset
+
+ and 
+\begin_inset Formula $s=\frac{1}{2}\sin(2\pi/n)$
+\end_inset
+
+, see Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Mappings"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ A 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+na
+\backslash
+
+\begin_inset Quotes erd
+\end_inset
+
+
+\backslash
+i ve
+\end_layout
+
+\end_inset
+
+ approach would be to use a bilinear mapping (Fig.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Bilinear-map"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+).
+ This presents a problem however: with this simple mapping adjacent parts
+ of the same interpolant would be parameterized discontinuously (Fig.
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Discontinuity"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+).
+ In the rest of this section, we will construct a mapping that is 
+\begin_inset Formula $C^{\infty}$
+\end_inset
+
+-continuous (except at the origin, which is singular).
+\end_layout
+
+\begin_layout Standard
+The proposed method works by creating 
+\emph on
+pencils
+\emph default
+ of quadratic rational Bézier curves in the two parametric directions, and
+ the mapping of 
+\begin_inset Formula $(u,v)$
+\end_inset
+
+ is defined to be the intersection of the 
+\begin_inset Formula $u$
+\end_inset
+
+-curve with the 
+\begin_inset Formula $v$
+\end_inset
+
+-curve – see Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Rational-map"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+, where the following notations are also shown:
+\begin_inset Formula 
+\begin{align}
+\mathbf{V}_{0} & =(c+\hat{c},-s-\hat{s}), & \mathbf{V}_{1} & =(2c-1,-2s),\nonumber \\
+\mathbf{V}_{2} & =(c,-s), & \mathbf{V}_{3} & =(1,0),\nonumber \\
+\mathbf{V}_{4} & =(c,s), & \mathbf{V}_{5} & =(2c-1,2s),\nonumber \\
+\mathbf{V}_{6} & =(c+\hat{c},s+\hat{s}),
+\end{align}
+
+\end_inset
+
+where 
+\begin_inset Formula $\hat{c}=\frac{1}{2}(\cos(4\pi/n)-1)$
+\end_inset
+
+ and 
+\begin_inset Formula $\hat{s}=\frac{1}{2}\sin(4\pi/n)$
+\end_inset
+
+.
+ The control points and rational weights of 
+\begin_inset Formula $u$
+\end_inset
+
+-curves are given as
+\begin_inset Formula 
+\begin{align}
+\mathbf{R}_{0} & =\mathbf{V}_{0}(1-u)+\mathbf{V}_{1}u, & w_{0} & =1,\nonumber \\
+\mathbf{R}_{1} & =\mathbf{V}_{2}u\exp(u^{2}-u), & w_{1} & =1/u,\nonumber \\
+\mathbf{R}_{2} & =\mathbf{V}_{4}(1-u)+\mathbf{V}_{3}u, & w_{2} & =1.
+\end{align}
+
+\end_inset
+
+Similarly for 
+\begin_inset Formula $v$
+\end_inset
+
+-curves:
+\begin_inset Formula 
+\begin{align}
+\mathbf{R}_{0} & =\mathbf{V}_{6}(1-v)+\mathbf{V}_{5}v, & w_{0} & =1,\nonumber \\
+\mathbf{R}_{1} & =\mathbf{V}_{4}v\exp(v^{2}-v), & w_{1} & =1/v,\nonumber \\
+\mathbf{R}_{2} & =\mathbf{V}_{2}(1-v)+\mathbf{V}_{3}v, & w_{2} & =1.
+\end{align}
+
+\end_inset
+
+Then the curves themselves can be evaluated with the formula
+\begin_inset Formula 
+\begin{equation}
+\mathbf{r}(t)=\frac{\sum_{i=0}^{2}\mathbf{R}_{i}w_{i}B_{i}^{2}(t)}{\sum_{i=0}^{2}w_{i}B_{i}^{2}(t)}.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The exponential term in the middle control point is there to accommodate
+ for the triangular domain where the 
+\begin_inset Formula $\mathbf{V}_{2}-\mathbf{V}_{3}-\mathbf{V}_{5}-\mathbf{V}_{6}-(0,0)$
+\end_inset
+
+ polygon is concave, and this helps pulling back the curve near the origin.
+ Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Rational-map3"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ shows 
+\begin_inset Formula $v$
+\end_inset
+
+-curves in a triangle for 
+\begin_inset Formula $v=k/20$
+\end_inset
+
+ values, 
+\begin_inset Formula $k=0\dots20$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+For a given 
+\begin_inset Formula $(u,v)$
+\end_inset
+
+ point in the quad domain, we need to intersect the corresponding 
+\begin_inset Formula $u$
+\end_inset
+
+- and 
+\begin_inset Formula $v$
+\end_inset
+
+-curves.
+ This is easily done with nested golden section searches in the 
+\begin_inset Formula $[\frac{1}{2},1]$
+\end_inset
+
+ interval.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "GoldenSection"
+literal "false"
+
+\end_inset
+
+ While this is a bit expensive, it can (and should) be precomputed.
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Triangular-patches"
+
+\end_inset
+
+Triangular patches
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide true
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/trebol-cage.png
+	width 30text%
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/trebol-iso.png
+	width 30text%
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/trebol-mean.png
+	width 30text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Trebol"
+
+\end_inset
+
+Trebol model (left: cage, center: isophote map, right: mean curvature map).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+The three-sided QGB patch is a quadratic Bézier triangle, and as such, does
+ not have a central control point.
+ Since we want to interpolate the middle point 
+\begin_inset Formula $\mathbf{M}$
+\end_inset
+
+, we should degree-elevate the boundaries to cubic and use a cubic Bézier
+ triangle, which has an extra degree of freedom:
+\begin_inset Formula 
+\begin{align}
+\mathbf{P}_{300} & =\mathbf{C}_{1},\quad\mathbf{P}_{030}=\mathbf{C}_{2},\quad\mathbf{P}_{003}=\mathbf{C}_{3},\nonumber \\
+\mathbf{P}_{210} & =\frac{1}{3}(\mathbf{C}_{1}+2\hat{\mathbf{E}}_{2}),\quad\mathbf{P}_{120}=\frac{1}{3}(\mathbf{C}_{2}+2\hat{\mathbf{E}}_{2}),\nonumber \\
+\mathbf{P}_{021} & =\frac{1}{3}(\mathbf{C}_{2}+2\hat{\mathbf{E}}_{3}),\quad\mathbf{P}_{012}=\frac{1}{3}(\mathbf{C}_{3}+2\hat{\mathbf{E}}_{3}),\nonumber \\
+\mathbf{P}_{102} & =\frac{1}{3}(\mathbf{C}_{3}+2\hat{\mathbf{E}}_{1}),\quad\mathbf{P}_{201}=\frac{1}{3}(\mathbf{C}_{1}+2\hat{\mathbf{E}}_{1}),
+\end{align}
+
+\end_inset
+
+and
+\begin_inset Formula 
+\begin{equation}
+\mathbf{P}_{111}=\frac{1}{6}(27\mathbf{M}-\sum_{\max(i,j,k)=3}\mathbf{P}_{ijk}-3\sum_{\max(i,j,k)=2}\mathbf{P}_{ijk}).
+\end{equation}
+
+\end_inset
+
+Then the patch can be evaluated by
+\begin_inset Formula 
+\begin{equation}
+\mathbf{I}(u,v)=\sum_{i+j+k=3}\mathbf{P}_{ijk}\frac{6}{i!j!k!}\lambda_{1}^{i}\lambda_{2}^{j}\lambda_{3}^{k}.
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Alternative-representations"
+
+\end_inset
+
+Alternative representations
+\end_layout
+
+\begin_layout Standard
+There are many multi-sided surface representations that we could use; for
+ a survey, see our upcoming paper.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Survey"
+literal "false"
+
+\end_inset
+
+ In particular, Midpoint and Midpoint Coons patches
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Midpoint"
+literal "false"
+
+\end_inset
+
+ are very well suited for this task.
+ Our experiments have shown, however, little difference in the resulting
+ models, while computationally QGB patches are simpler and more efficient.
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Results"
+
+\end_inset
+
+Results
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/torus-cage.png
+	width 80col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/torus.png
+	width 80col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Torus"
+
+\end_inset
+
+Torus model (top: cage, bottom: isophote map).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Our first model is a regular quadmesh in the shape of a torus, see Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Torus"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ The result is far from a torus, but the isophote lines flow smoothly on
+ the surface.
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+trebol
+\emph default
+ object shown in Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Trebol"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ is a commonly used test model as it has vertices of valences 3, 4, 5 and
+ 6.
+ The isophote lines indicate that the multi-sided patches are of good quality
+ and connect continuously, while the mean map shows that edges tend to be
+ a little flat.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide true
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/icosahedron-cage.png
+	width 60col%
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/icosahedron-cage-cc.png
+	width 60col%
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\begin_inset Graphics
+	filename images/icosahedron-mean.png
+	width 60col%
+
+\end_inset
+
+
+\begin_inset space \hspace*{\fill}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Icosahedron"
+
+\end_inset
+
+Icosahedron model (from left to right: triangular cage, cage after subdivision,
+ mean curvature map).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+The icosahedron model in Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Icosahedron"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ is composed of triangles.
+ As a first step, a Catmull–Clark step is performed, resulting in a quadmesh
+ with 3-, 4- and 5-valent vertices.
+ The mean curvature map suggests larger values near 5-valent vertices, but
+ otherwise there are only small fluctuations, corresponding to the mesh
+ edges.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bob-surf.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bob-slicing.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Bob"
+
+\end_inset
+
+`Bob' model (top: cage, bottom: contouring).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bob-env.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename images/bob-mean.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Bob-1"
+
+\end_inset
+
+`Bob' model (top: reflection, bottom: mean map).
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+Finally, Figures
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Bob"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+–
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Bob-1"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ show a more complex model
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Taken from the code supplied to the paper on K-surfaces.
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Bob"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ with environment mapping, contouring and mean curvature.
+\end_layout
+
+\begin_layout Section*
+Conclusion and future work
+\end_layout
+
+\begin_layout Standard
+We have proposed a new construction for a piecewise parametric surface interpola
+ting a mesh of arbitrary topology.
+ There are many avenues for further research.
+ Currently our method works only for closed meshes; it should be generalized
+ to meshes with boundary.
+ Then continuous boundary constraints (positional and cross-derivative interpola
+tion) may also be added.
+ Extension with shape parameters can also be considered.
+ Better quality may be achieved if normal vector interpolation is incorporated.
+\end_layout
+
+\begin_layout Section*
+Acknowledgments
+\end_layout
+
+\begin_layout Standard
+This project has been supported by the Hungarian Scientific Research Fund
+ (OTKA, No.
+\begin_inset space ~
+\end_inset
+
+145970).
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "cikkek"
+options "plain"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
