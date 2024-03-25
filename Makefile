@@ -1,4 +1,4 @@
-all: manifold manifold-qgb paramtest
+all: manifold manifold-qgb paramtest blend-test
 
 LIBGEOM=../libgeom
 TRANSFINITE=../transfinite
@@ -19,3 +19,6 @@ manifold-qgb: manifold-qgb.o param.o blend.o
 
 paramtest: paramtest.o
 	$(CXX) -o $@ $< $(CXXFLAGS) $(LIBS)
+
+blend-test: blend-test.o blend.o
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
