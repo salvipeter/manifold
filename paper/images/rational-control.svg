@@ -71,13 +71,13 @@
     <text
        xml:space="preserve"
        style="font-size:32px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px"
-       x="226.38905"
-       y="753.41272"
+       x="240.52086"
+       y="757.0177"
        id="text1"><tspan
          sodipodi:role="line"
          id="tspan1"
-         x="226.38905"
-         y="753.41272">V<tspan
+         x="240.52086"
+         y="757.0177">V<tspan
    style="font-size:65%;baseline-shift:sub"
    id="tspan2">0</tspan></tspan></text>
     <text
@@ -157,5 +157,41 @@
        style="fill:none;stroke:#646464;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:12, 12;stroke-dashoffset:0;stroke-opacity:1"
        d="m 333.33265,522.66601 174.536,126.808"
        id="path13" />
+    <text
+       xml:space="preserve"
+       style="font-size:32px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="306.13113"
+       y="780.28369"
+       id="text13"><tspan
+         sodipodi:role="line"
+         id="tspan13"
+         x="306.13113"
+         y="780.28369">R<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan11">0</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:32px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="345.66147"
+       y="575.34583"
+       id="text16"><tspan
+         sodipodi:role="line"
+         id="tspan16"
+         x="345.66147"
+         y="575.34583">R<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan14">1</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:32px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:sans-serif;letter-spacing:0px;word-spacing:0px"
+       x="552.70874"
+       y="449.67819"
+       id="text18"><tspan
+         sodipodi:role="line"
+         id="tspan18"
+         x="552.70874"
+         y="449.67819">R<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan17">2</tspan></tspan></text>
   </g>
 </svg>
